@@ -8,18 +8,18 @@
 
 printf "
 
-#############################
-# CentOS Security & Updates #
-#############################
+                  #############################
+                  # CentOS Security & Updates #
+                  #############################
 
-#################################
-#This script MUST be run as root#
-#################################
+                #################################
+                #This script MUST be run as root#
+                #################################
 
-##############################################################
-# Welcome, you will be presented with a few questions, please#
-#          answer [y/n] according to your needs.             #
-##############################################################\n\n"
+   ##############################################################
+   # Welcome, you will be presented with a few questions, please#
+   #          answer [y/n] according to your needs.             #
+   ##############################################################\n\n"
 
 
 
@@ -93,17 +93,17 @@ fi
 
 if [[ $answerGoogleDNS = y ]] ; then
 
-echo nameserver 8.8.8.8 >> /etc/resolv.conf
-echo nameserver 8.8.4.4 >> /etc/resolv.conf
-echo nameserver 4.2.2.2 >> /etc/resolv.conf
+sudo echo nameserver 8.8.8.8 >> /etc/resolv.conf
+sudo echo nameserver 8.8.4.4 >> /etc/resolv.conf
+sudo echo nameserver 4.2.2.2 >> /etc/resolv.conf
 fi
 
-if [[ $answerWegettinghard = y]] ; then
-echo  1 > /proc/sys/net/ipv4/icmp_echo_ignore_all
-sed -i 's/.*PermitRootLogin.*yes/PermitRootLogin no/g' /etc/ssh/sshd_config
-yum erase xinetd inetd tftp-server ypserv telnet-server rsh-server
-sysctl -w net.ipv6.conf.default.disable_ipv6=1
-sysctl -w net.ipv6.conf.all.disable_ipv6=1
+if [[ $answerWegettinghard = y ]] ; then
+sudo echo  1 > /proc/sys/net/ipv4/icmp_echo_ignore_all
+sudo sed -i 's/.*PermitRootLogin.*yes/PermitRootLogin no/g' /etc/ssh/sshd_config
+sudo yum erase xinetd inetd tftp-server ypserv telnet-server rsh-server
+sudo sysctl -w net.ipv6.conf.default.disable_ipv6=1
+sudo sysctl -w net.ipv6.conf.all.disable_ipv6=1
 fi
 
 if [[ $answerUpdate = y ]] ; then
@@ -111,10 +111,10 @@ if [[ $answerUpdate = y ]] ; then
 printf "Updating CentOS, this stage may take about an hour to complete...Hope you have some time to burn...
 "
 su -c 'yum update'
-yum install sudo perl ntp crontabs sendmail mlocate wget -y
+sudo yum install sudo perl ntp crontabs sendmail mlocate wget -y
 wget http://fedora.mirror.nexicom.net/epe1/6/i386/epel-release-6-7.noarch.rpm
-yum install epel-release-6-7.noarch.rpm
-yum repolist
+sudo yum install epel-release-6-7.noarch.rpm
+sudo yum repolist
 
 fi
 
@@ -123,40 +123,40 @@ http://www.cipherdyne.com/psad/download/psad-2.2.3-1.x86_64.rpm
 rpm -Uvh psad-2.2.3-1.x86_64.rpm
 rpm -ivh Bastille-3.2.1-0.1.noarch.rpm
 rpm -ivh perl-Tk-a.b-c.i386.rpm
-bastille -c
+sudo bastille -c
 bastilleinstalled = y
 fi
 
 if [[ $answerFail2ban = y ]] ; then
 rpm -Uvh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
-yum install fail2ban
+sudo yum install fail2ban
 fail2baninstalled = y
 fi
 
 if [[ $answerOpenVAS = y ]] ; then
 wget -q -O - http://www.atomicorp.com/installers/atomic |sh
-yum upgrade
-yum install openvas
+sudo yum upgrade
+sudo yum install openvas
 openvas-setup
 fi
 
 if [[ $answerCurl = y ]] ; then
-yum install php-common
-yum install php-curl
+sudo yum install php-common
+sudo yum install php-curl
 fi
 
-if [[ $answerNikto = y]] ; then
+if [[ $answerNikto = y ]] ; then
 #wget https://www.cirt.net/nikto/nikto-2.1.5.tar.bz2
 #tar -zxvf nikto-2.1.5.tar.bz2
 #chmod +x /nikto-2.1.5/nikto.pl
 wget http://www6.atomicorp.com/channels/atomic/centos/6/i386/RPMS/atomic-release-1.0-18.el6.art.noarch.rpm
 rpm -Uvh atomic-release-1.0-18.el6.art.noarch.rpm
-yum install nikto
+sudo yum install nikto
 "
 fi
 
-if [[ $answerPhp = y]] ; then
-yum install php
+if [[ $answerPhp = y ]] ; then
+sudo yum install php
 sed -i 's/memory_limit = 16M/memory_limit = 8M' /etc/php5/apache/php.ini
 fi
 
@@ -164,7 +164,7 @@ if [[ $answerLeopardFlower = y ]] ; then
 wget http://iweb.dl.sourceforge.net/project/leopardflower/Source/lpfw-0.4-src.zip
 fi
 
-if [[ $answerMysql = y]] ; then
+if [[ $answerMysql = y ]] ; then
 sudo yum install mysql-server
 sudo /sbin/service mysqld start
 fi
@@ -194,11 +194,11 @@ function pause () {
 read -p "$*"
 }
 
-if [[ $bastilleinstalled = y]] ; then
+if [[ $bastilleinstalled = y ]] ; then
 read -p "Do you want to configure Bastille? [y/n]" answerConfigBastille
 fi
 
-if [[answerConfigBastille = y]] ;
+if [[ answerConfigBastille = y ]] ;
 printf"Here we go...."
 printf"
 
@@ -236,14 +236,14 @@ printf"
 
 fi
 
-if [[fail2baninstalled = y]] ; then
+if [[ fail2baninstalled = y ]] ; then
 read -p "Do you want to configure fail2ban? [y/n]" answerConfigfail2ban
 fi
 
-if [[answerConfigfail2ban = y]] ; then
+if [[ answerConfigfail2ban = y ]] ; then
 sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
-sed -i '/s/enabled  = true/enabled = false/g'/etc/fail2ban/jail.local
-sed -i '/s/600/360000/g' /etc/fail2ban/jail.local
+sudo sed -i '/s/enabled  = true/enabled = false/g'/etc/fail2ban/jail.local
+sudo sed -i '/s/600/360000/g' /etc/fail2ban/jail.local
 printf"Restarting Fail2ban..."
 sudo service fail2ban restart
 
