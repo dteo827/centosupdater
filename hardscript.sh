@@ -154,3 +154,7 @@ pause '
 Press [Enter] key to exit...
 '
 fi
+
+pause '
+    Press [Enter] key to exit...
+     '
