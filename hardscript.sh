@@ -148,13 +148,12 @@ fi
 if [[ $answerLynis = y ]]; then
 wget -q -O https://cisofy.com/files/lynis-1.6.4.tar.gz
 tar - xjf lynis-1.6.4.tar.gz
+fi
 
+function pause () {
+read -p "$*"
+}
 
 pause '
 Press [Enter] key to exit...
 '
-fi
-
-pause '
-    Press [Enter] key to exit...
-     '
