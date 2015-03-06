@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # CentOS Configuration and Updater version 2.0
-# I hate Centos.
 # This script is intended for use in CentOS Linux Installations
 # Thanks to Pashapasta for the script template, check out the Kali version at https://github.com/PashaPasta/KaliUpdater/blob/master/KaliConfigAndUpdate.sh
 # Please contact dteo827@gmail.com with bugs or feature requests
@@ -30,10 +29,13 @@ fail2baninstalled = n
 # Questions function
 function questions() {
 read -p "Do you want to add Google's and Level3's Public DNS to the resolv.conf file? [y/n]" answerGoogleDNS
-read -p "Do you want to turn off root login, Ipv6, keep boot as read only,and ignore ICMP broadcast requests and prevent XSS attacks? [y/n]" answerWegettinghard
-read -p "Do you want to install security updates to CentOS Linux now? [y/n] " answerSecUpdate
-read -p "Do you want to install all updates to CentOS Linux now? [y/n] " answerUpdate
+read -p "Do you want to fix the secruity repos to archive repos? [y/n]" answerFixRepos
+read -p "Do you want to install *ONLY* security updates to CentOS Linux now? [y/n] " answerSecUpdate
+read -p "Do you want to install *ALL* updates to Ubuntu Linux now? [y/n] " answerUpdate
+read -p "Do you want to turn off root login, Ipv6, keep boot as read only,and ignore ICMP broadcast requests and prevent XSS attacks? [y/n]" answermasshardening
+read -p "Do you want to install Bastille [y/n]" answerBastille
 read -p "Do you want to install Lynis [y/n]" answerLynis
+read -p "Do you want to install Fail2ban [y/n]" answerFail2ban
 }
 
 # Flags!!!!
@@ -43,17 +45,24 @@ read -p "Do you want to install Lynis [y/n]" answerLynis
 
 if [[ $1 = -a ]] ; then
 
-read -p "Are you sure you want to install all packages and configure everything by default? [y/n] " answerWarning
-if [[ $answerWarning = y ]] ; then
-answerGoogleDNS=y
-answerWegettinghard=y
-answerSecUpdate=y
-answerUpdate=y
-answerLynis=y
+    read -p "Are you sure you want to install all packages and configure everything by default? Only Security Updates will be installed [y/n] " answerWarning
+    if [[ $answerWarning = y ]] ; then
+        answerGoogleDNS=y
+        answerFixRepos=y
+        answerSecUpdate=y
+        answermasshardening=y
+        answerBastille=y
+        answerLynis=y
+        answerFail2ban=y
+    else
+        printf "Verify what you do and do not want done...."
+        sleep 2
+        questions
+fi
+
 else
-printf "Verify would you do and do not want done...."
-sleep 2
-questions
+    echo "unknown command"
+    questions
 fi
 
 elif [[ $1 = -h ]] ; then
@@ -72,9 +81,14 @@ if [[ $answerGoogleDNS = y ]] ; then
 sudo echo nameserver 8.8.8.8 >> /etc/resolv.conf
 sudo echo nameserver 8.8.4.4 >> /etc/resolv.conf
 sudo echo nameserver 4.2.2.2 >> /etc/resolv.conf
+echo "Updated DNS resolutions to Google DNS, this task was completed at: " $(date) >> changes
 fi
 
-if [[ $answerWegettinghard = y ]] ; then
+if  [[$answerFixRepos = y]] ; then
+    sudo sed -i -e 's/archive.ubuntu.com\|security.ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list
+fi
+
+if [[ $answermasshardening = y ]] ; then
 sudo echo  1 > /proc/sys/net/ipv4/icmp_echo_ignore_all
 sudo sed -i 's/.*PermitRootLogin.*yes/PermitRootLogin no/g' /etc/ssh/sshd_config
 sysctl net.ipv6.conf.all.disable_ipv6=1
@@ -148,10 +162,10 @@ fi
 if [[ $answerLynis = y ]]; then
 wget -q -O https://cisofy.com/files/lynis-1.6.4.tar.gz
 tar - xjf lynis-1.6.4.tar.gz
-fi
+
 
 function pause () {
-read -p "$*"
+        read -p "$*"
 }
 
 pause '
