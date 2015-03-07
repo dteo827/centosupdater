@@ -28,6 +28,7 @@ fail2baninstalled = n
 
 # Questions function
 function questions() {
+read -p "Do you want to update bash? [y/n] " answerUpdateBash
 read -p "Do you want to add Google's and Level3's Public DNS to the resolv.conf file? [y/n]" answerGoogleDNS
 read -p "Do you want to fix the secruity repos to archive repos? [y/n]" answerFixRepos
 read -p "Do you want to install *ONLY* security updates to CentOS Linux now? [y/n] " answerSecUpdate
@@ -40,8 +41,15 @@ read -p "Do you want to install Fail2ban [y/n]" answerFail2ban
 
 # Flags!!!!
 # If script run with -a flag, all options will automatically default to yes
-# IF script run with -h flag, README.md will be displayed
-# If script run with -s flag, only items that should be used on a server install will be set to yes
+
+echo "version"
+lsb_release -r >> file
+uname -r >> file
+echo date >> file
+echo
+echo "my name" >> file
+echo
+echo dpkg -l >> file
 
 if [[ $1 = -a ]] ; then
 
@@ -76,6 +84,22 @@ fi
 
 # Logic for update and configuration steps
 
+
+if [[ $answerUpdateBash = y ]] ; then
+    cd /src
+    wget http://ftp.gnu.org/gnu/bash/bash-4.3.tar.gz
+    #download all patches
+    for i in $(seq -f "%03g" 1 28); do wget http://ftp.gnu.org/gnu/bash/bash-4.3-patches/bash43-$i; done
+    tar zxvf bash-4.3.tar.gz
+    cd bash-4.3
+    #apply all patches
+    for i in $(seq -f "%03g" 1 28);do patch -p0 < ../bash43-$i; done
+    #build and install
+    ./configure --prefix=/ && make && make install
+    cd /root
+    rm -r src
+fi
+
 if [[ $answerGoogleDNS = y ]] ; then
 
 sudo echo nameserver 8.8.8.8 >> /etc/resolv.conf
@@ -85,56 +109,19 @@ echo "Updated DNS resolutions to Google DNS, this task was completed at: " $(dat
 fi
 
 if  [[$answerFixRepos = y]] ; then
-    sudo sed -i -e 's/archive.ubuntu.com\|security.ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list
+    wget http://download.fedoraproject.org/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
+	rpm -ivh epel-release-5-4.noarch.rpm
+	sudo yum install epel-release-5-4.noarch.rpm
+	sudo yum repolist
 fi
 
 if [[ $answermasshardening = y ]] ; then
 sudo echo  1 > /proc/sys/net/ipv4/icmp_echo_ignore_all
-sudo sed -i 's/.*PermitRootLogin.*yes/PermitRootLogin no/g' /etc/ssh/sshd_config
-sysctl net.ipv6.conf.all.disable_ipv6=1
-yum install sudo perl ntp crontabs sendmail wget -y
-wget http://dl.fedoraproject.org/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
-wget http://rpms.famillecollet.com/enterprise/remi-release-5.rpm
-sudo rpm -Uvh remi-release-5*.rpm epel-release-5*.rpm
-yum repolist
-
 userdel shutdown
 userdel halt
 userdel games
 userdel operator
 userdel gopher
-awk -F: '($3 == "0") (print)' /etc/passwd
-yum erase xinetd inetd tftp-server ypserv telnet-server rsh-server
-
-#prevent running root cron tasks
-touch /etc/cron.allow
-chmod 600 /etc/cron.allow
-awk -F: '{print $1}' /etc/passwd | grep -v root > /etc/cron.deny
-touch /etc/at.allow
-chmod 600 /etc/at.allow
-awk -F: '{print $1}' /etc/passwd | grep -v root > /etc/at.deny
-
-#Narrowing rights
-chmod 700 /root
-chmod 700 /var/log/audit
-chmod 740 /etc/rc.d/init.d/iptables
-chmod 740 /sbin/iptables
-chmod -R 700 /etc/skel
-chmod 600 /etc/rsyslog.conf
-chmod 640 /etc/security/access.conf
-chmod 600 /etc/syctrl.conf
-
-#ignore ping broadcasts
-cat << 'EOF' >> /etc/sysctl.conf
-net.ipv4.icmp_echo_ignore_broadcasts = 1
-net.ipv4.icmp_echo_ignore_bogus_error_responses = 1
-net.ipv4.conf.all.send_redirects = 0
-net.ipv4.conf.default.send_redirects = 0
-net.ipv4.conf.all.accepts_redirects = 0
-net.ipv4.conf.all.secure_redirects = 0
-net.ipv4.conf.default.accept_redirects = 0
-authconfig --passalgo=sha512 --update
-
 fi
 
 if [[ $answerSecUpdate = y ]] ; then
@@ -160,9 +147,17 @@ sudo yum repolist
 fi
 
 if [[ $answerLynis = y ]]; then
-wget -q -O https://cisofy.com/files/lynis-1.6.4.tar.gz
+wget -q -O https://cisofy.com/files/lynis-1.6.4.tar.gz --no-check-certificate
 tar - xjf lynis-1.6.4.tar.gz
 
+echo "version"
+lsb_release -r >> file
+uname -r >> file
+echo date >> file
+echo
+echo "my name" >> file
+echo
+echo dpkg -l >> file
 
 function pause () {
         read -p "$*"
