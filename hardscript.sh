@@ -150,6 +150,8 @@ if [[ $answerLynis = y ]]; then
 wget -q -O https://cisofy.com/files/lynis-1.6.4.tar.gz --no-check-certificate
 tar - xjf lynis-1.6.4.tar.gz
 
+fi
+
 echo "version"
 lsb_release -r >> file
 uname -r >> file
